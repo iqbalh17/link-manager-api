@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Saya</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .profile-container {
+            width: 100%;
+            max-width: 680px;
+            text-align: center;
+        }
+        img.profile-picture {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: #ddd;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1.username {
+            font-size: 24px;
+            color: #1c1e21;
+            margin-bottom: 30px;
+        }
+        .links-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .link-button {
+            display: block;
+            background-color: #ffffff;
+            color: #050505;
+            text-decoration: none;
+            padding: 18px 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .link-button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        }
+        .loading-text {
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="profile-container">
+        <img src="https://via.placeholder.com/150" alt="Foto Profil" class="profile-picture" id="profile-pic">
+        
+        <h1 class="username" id="username-display">@memuat...</h1>
+
+        <div class="links-container" id="links-list">
+             <p class="loading-text">Sedang mengambil link...</p>
+        </div>
+    </div>
+
+    <script>
+        const USERNAME_TO_FETCH = 'testhacker'; 
+        const API_BASE_URL = 'http://localhost:3000';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchProfileData();
+        });
+
+        async function fetchProfileData() {
+            const usernameEl = document.getElementById('username-display');
+            const linksListEl = document.getElementById('links-list');
+            const profilePicEl = document.getElementById('profile-pic');
+
+            try {
+
+                const response = await fetch(`${API_BASE_URL}/${USERNAME_TO_FETCH}`);
+
+                if (!response.ok) {
+                    throw new Error('User tidak ditemukan!');
+                }
+
+                const data = await response.json();
+
+                usernameEl.textContent = `@${data.username}`;
+                
+                if (data.profile_picture_url) {
+                    profilePicEl.src = data.profile_picture_url;
+                }
+
+                linksListEl.innerHTML = ''; 
+
+                if (data.links.length > 0) {
+                    data.links.forEach(link => {
+                        const linkButton = document.createElement('a');
+                        linkButton.className = 'link-button';
+                        
+                        linkButton.href = `${API_BASE_URL}/click/${link.id}`;
+                        
+                        linkButton.textContent = link.title;
+                        linkButton.target = "_blank";
+
+                        linksListEl.appendChild(linkButton);
+                    });
+                } else {
+                    linksListEl.innerHTML = '<p>User ini belum memiliki link.</p>';
+                }
+
+            } catch (error) {
+                console.error('Gagal mengambil data:', error);
+                usernameEl.textContent = 'Gagal memuat profil.';
+                linksListEl.innerHTML = `<p style="color: red;">${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
